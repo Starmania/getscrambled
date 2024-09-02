@@ -1,5 +1,7 @@
 import itertools
+import json
 import math
+import typing
 
 import PIL
 import PIL.Image
@@ -10,8 +12,11 @@ from .exceptions import ImageFormatError
 from .constants import BLOCK_SIZE as BS
 from .constants import BACKGROUND_COLOR as BC
 
+if typing.TYPE_CHECKING:
+    Image = PIL.Image.Image
 
-def _get_max_size(size, block_size):
+
+def _get_max_size(size: tuple[int, int], block_size: int):
     return (math.ceil(size[0] / block_size) * block_size,
             math.ceil(size[1] / block_size) * block_size)
 
@@ -36,7 +41,7 @@ def create_block_grid(width: int, height: int, block_size: int = BS) -> list[tup
     return sorted(blocks_zipped)
 
 
-def expand_image(image: PIL.Image.Image, block_size=BS, color=BC) -> PIL.Image.Image:
+def expand_image(image: "Image", block_size: int = BS, color=BC) -> "Image":
     """Resize the canvas of the image to be a multiple of the block size.
 
     This function does not modify the existing pixels,
@@ -44,7 +49,7 @@ def expand_image(image: PIL.Image.Image, block_size=BS, color=BC) -> PIL.Image.I
 
 
     Args:
-        image (PIL.Image.Image): The image to be expanded.
+        image (Image): The image to be expanded.
         block_size (int, optional): The size of the blocks. Defaults to BLOCK_SIZE.
         color (int, optional): The color of the added pixels. Defaults to BC (white).
     """
@@ -54,34 +59,20 @@ def expand_image(image: PIL.Image.Image, block_size=BS, color=BC) -> PIL.Image.I
     return expanded_image
 
 
-def add_data_image(image, blocks):
-    if isinstance(image, str):
-        image = PIL.Image.open(image)
+def arrange_blocks(image: "Image", block_size: int, blocks, decoding=False):
+    """Create a new image with the blocks arranged in the positions given by the list "blocks"
 
-    if image.format != "PNG":
-        raise ImageFormatError(image)
-
-    # Minimise the size of the variable "blocks"
-    blocks = tuple((int(x), int(y)) for x, y in blocks)
-
-    return stegano.lsb.hide(image, blocks)
-
-
-def encode_block(image, block_size=BS):
-    """Create a new image with an random arrangement of the blocks of the original image
+    This function could encode or decode an image.
 
     Args:
-        image (_type_): _description_
-        block_size (_type_, optional): _description_. Defaults to BS.
+        image (Image): The original image
+        block_size (int)
+        blocks (list[tuple[int, int]]): The positions of the blocks
 
-    Raises:
-        ImageFormatError: _description_
+    Returns:
+        Image: The new image with the blocks arranged
     """
-    if isinstance(image, str):
-        image = PIL.Image.open(image)
-
-    if image.format != "PNG":
-        raise ImageFormatError(image)
+    original_blocks = create_block_grid(*image.size, block_size)
 
     max_size = _get_max_size(image.size, block_size)
     encoded_image = PIL.Image.new(image.mode, max_size, color=BC)
@@ -92,19 +83,118 @@ def encode_block(image, block_size=BS):
     else:
         extended_image = image
 
+    generator = zip(blocks, original_blocks) if decoding else zip(
+        original_blocks, blocks)
+
+    for (x, y), (ox, oy) in generator:
+        block = image.crop((x * block_size, y * block_size,
+                            x * block_size + block_size, y * block_size + block_size))
+        encoded_image.paste(block, (ox * block_size, oy * block_size))
+    return encoded_image
+
+
+def add_data_image(image: "Image", blocks):
+    """Add the blocks information to the image
+
+    Args:
+        image (Image): The image to be modified
+        blocks (list[tuple[int, int]]): The positions of the blocks
+
+    Raises:
+        ImageFormatError: If the image is known to not be a PNG image
+
+    Returns:
+        Image: The modified image
+    """
+    if isinstance(image, str):
+        image = PIL.Image.open(image)
+
+    if image.format not in ("PNG", ""):
+        raise ImageFormatError(image)
+
+    # Minimise the size of the variable "blocks"
+    number_list = []
+    for x, y in blocks:
+        number_list.append(int(x))
+        number_list.append(int(y))
+
+    json_data = json.dumps(number_list, separators=(',', ':'))
+
+    return stegano.lsb.hide(image, json_data)
+
+
+def extract_data_image(image):
+    """Extract the blocks information from the image
+
+    Args:
+        image (Image): The image to query from
+
+    Returns:
+        blocks (list[tuple[int, int]]): The positions of the blocks
+    """
+    if isinstance(image, str):
+        image = PIL.Image.open(image)
+
+    data = stegano.lsb.reveal(image)
+    blocks_bad = json.loads(data)
+    blocks = [(blocks_bad[i], blocks_bad[i + 1])
+              for i in range(0, len(blocks_bad), 2)]
+
+    return blocks
+
+
+def encode_block(image: "Image", block_size: int = BS):
+    """Create a new image with an random arrangement of the blocks of the original image
+
+    Args:
+        image (Image): The original image
+        block_size (int, optional). Defaults to BS.
+
+    Raises:
+        ImageFormatError: If the image is known to not be a PNG image
+    """
+    if isinstance(image, str):
+        image = PIL.Image.open(image)
+
+    if image.format not in ("PNG", ""):
+        raise ImageFormatError(image)
+
     # Generate blocks positions
     blocks = create_block_grid(*image.size, block_size)
 
-    original_blocks = blocks.copy()
-
     # Shuffle blocks
-    np.random.shuffle(blocks)
+    state = np.random.Generator(np.random.PCG64([0, 1, 2, 3]))
 
-    for (x, y), (ox, oy) in zip(blocks, original_blocks):
-        block = image.cr    op((x * block_size, y * block_size,
-                            x * block_size + block_size, y * block_size + block_size))
-        encoded_image.paste(block, (ox * block_size, oy * block_size))
+    state.shuffle(blocks)
+
+    encoded_image = arrange_blocks(image, block_size, blocks)
 
     blocks.insert(0, image.size)  # So we can recover the original image size
 
     return blocks, encoded_image
+
+
+def decode_block(image, blocks: list[tuple[int, int]], block_size: int=BS):
+    """Create a new image with the original blocks arrangement
+
+    Args:
+        image (Image): The image to be decoded
+        block_size (int, optional). Defaults to BS.
+
+    Raises:
+        ImageFormatError: If the image is known to not be a PNG image
+    """
+    if isinstance(image, str):
+        image = PIL.Image.open(image)
+
+    if image.format not in ("PNG", ""):
+        raise ImageFormatError(image)
+
+    original_size = blocks.pop(0)
+
+    encoded_image = arrange_blocks(image, block_size, blocks, decoding=True)
+
+    cropped_image = encoded_image.crop(
+        (0, 0, original_size[0], original_size[1]))
+
+    return cropped_image
