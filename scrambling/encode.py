@@ -95,13 +95,15 @@ def encode_block(image, block_size=BS):
     # Generate blocks positions
     blocks = create_block_grid(*image.size, block_size)
 
+    original_blocks = blocks.copy()
+
     # Shuffle blocks
     np.random.shuffle(blocks)
 
-    for (x, y) in blocks:
-        block = image.crop((x * block_size, y * block_size,
+    for (x, y), (ox, oy) in zip(blocks, original_blocks):
+        block = image.cr    op((x * block_size, y * block_size,
                             x * block_size + block_size, y * block_size + block_size))
-        encoded_image.paste(block, (x * block_size, y * block_size))
+        encoded_image.paste(block, (ox * block_size, oy * block_size))
 
     blocks.insert(0, image.size)  # So we can recover the original image size
 
