@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scrambling"
-version = "0.1.0"
+version = "0.2.0"
 description = "Protect unintended copy of your images by hiding the key in plain sight"
 authors = ["Starmania <wycvhrt6vzscfpedxr@gmail.com>"]
 readme = "README.md"
