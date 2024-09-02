@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "scrambling"
+name = "getscrambled"
 version = "0.2.0"
 description = "Protect unintended copy of your images by hiding the key in plain sight"
 authors = ["Starmania <wycvhrt6vzscfpedxr@gmail.com>"]

@@ -1,4 +1,4 @@
-"""Module for exceptions used in the scrambling package.
+"""Module for exceptions used in the getscrambled package.
 """
 import PIL.Image
 

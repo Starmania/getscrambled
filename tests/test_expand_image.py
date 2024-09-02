@@ -2,7 +2,7 @@
 import PIL.Image
 import pytest
 
-from scrambling.shared import expand_image
+from getscrambled.shared import expand_image
 
 
 @pytest.fixture

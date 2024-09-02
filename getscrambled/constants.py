@@ -1,9 +1,9 @@
-"""Constants for the Scrambling project.
+"""Constants for the getscrambled project.
 
     To edit theses constants at runtime, do this before importing any other module:
 
     ```python
-    from scrambling import constants
+    from getscrambled import constants
     constants.BLOCK_SIZE = 64
     ```
     """
