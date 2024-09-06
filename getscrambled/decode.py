@@ -20,7 +20,6 @@ import PIL.Image
 import stegano
 
 from .exceptions import ImageFormatError
-from .constants import BLOCK_SIZE as BS
 from .shared import arrange_blocks
 
 
@@ -44,7 +43,7 @@ def extract_data_image(image):
     return blocks
 
 
-def decode_block(image, blocks: list[tuple[int, int]], block_size: int = BS):
+def decode_block(image, blocks: list[tuple[int, int]]):
     """Create a new image with the original blocks arrangement
 
     Args:

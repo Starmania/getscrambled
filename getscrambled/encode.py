@@ -21,7 +21,7 @@ import numpy as np
 import stegano
 
 from .exceptions import ImageFormatError
-from .constants import BLOCK_SIZE as BS
+from .constants import constants as C
 from .shared import create_block_grid, arrange_blocks
 
 if typing.TYPE_CHECKING:
@@ -58,8 +58,7 @@ def add_data_image(image: "Image", blocks):
     return stegano.lsb.hide(image, json_data)
 
 
-
-def encode_block(image: "Image", block_size: int = BS):
+def encode_block(image: "Image", block_size: int = None):
     """Create a new image with an random arrangement of the blocks of the original image
 
     Args:
@@ -69,6 +68,9 @@ def encode_block(image: "Image", block_size: int = BS):
     Raises:
         ImageFormatError: If the image is known to not be a PNG image
     """
+    if block_size is None:
+        block_size = C.BLOCK_SIZE
+
     if isinstance(image, str):
         image = PIL.Image.open(image)
 

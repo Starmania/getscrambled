@@ -7,8 +7,7 @@ import typing
 import PIL
 import PIL.Image
 
-from .constants import BLOCK_SIZE as BS
-from .constants import BACKGROUND_COLOR as BC
+from .constants import constants as C
 
 if typing.TYPE_CHECKING:
     Image = PIL.Image.Image
@@ -19,7 +18,9 @@ def _get_max_size(size: tuple[int, int], block_size: int):
             math.ceil(size[1] / block_size) * block_size)
 
 
-def create_block_grid(width: int, height: int, block_size: int = BS) -> list[tuple[int, int]]:
+def create_block_grid(
+    width: int, height: int, block_size: int = None
+) -> list[tuple[int, int]]:
     """Create a grid of blocks positions.
 
     Order: left to right (1), top to bottom (0)
@@ -32,6 +33,8 @@ def create_block_grid(width: int, height: int, block_size: int = BS) -> list[tup
     Returns:
         list[tuple[int, int]]: A list of tuples with the positions of the blocks
     """
+    if block_size is None:
+        block_size = C.BLOCK_SIZE
     blocks_zipped = itertools.product(
         range(math.ceil(width / block_size)),
         range(math.ceil(height / block_size))
@@ -39,7 +42,7 @@ def create_block_grid(width: int, height: int, block_size: int = BS) -> list[tup
     return sorted(blocks_zipped)
 
 
-def expand_image(image: "Image", block_size: int = BS, color=BC) -> "Image":
+def expand_image(image: "Image", block_size: int = None, color=None) -> "Image":
     """Resize the canvas of the image to be a multiple of the block size.
 
     This function does not modify the existing pixels,
@@ -51,6 +54,12 @@ def expand_image(image: "Image", block_size: int = BS, color=BC) -> "Image":
         block_size (int, optional): The size of the blocks. Defaults to BLOCK_SIZE.
         color (int, optional): The color of the added pixels. Defaults to BC (white).
     """
+    if block_size is None:
+        block_size = C.BLOCK_SIZE
+
+    if color is None:
+        color = C.BACKGROUND_COLOR
+
     max_size = _get_max_size(image.size, block_size)
     expanded_image = PIL.Image.new(image.mode, max_size, color=color)
     expanded_image.paste(image, (0, 0))
@@ -73,7 +82,8 @@ def arrange_blocks(image: "Image", block_size: int, blocks, decoding=False):
     original_blocks = create_block_grid(*image.size, block_size)
 
     max_size = _get_max_size(image.size, block_size)
-    encoded_image = PIL.Image.new(image.mode, max_size, color=BC)
+    encoded_image = PIL.Image.new(
+        image.mode, max_size, color=C.BACKGROUND_COLOR)
 
     if image.size != max_size:
         extended_image = expand_image(image, block_size)
