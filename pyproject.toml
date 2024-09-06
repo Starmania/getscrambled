@@ -4,6 +4,9 @@ version = "1.0.0"
 description = "Protect unintended copy of your images by hiding the key in plain sight"
 authors = ["Starmania <wycvhrt6vzscfpedxr@gmail.com>"]
 readme = "README.md"
+license = "CERN-OHL-P-2.0-1"
+homepage = "https://github.com/Starmania/getscrambled"
+repository = "https://github.com/Starmania/getscrambled"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
