@@ -50,7 +50,7 @@ def extract_data_image(image):
     return blocks
 
 
-def decode_block(image, blocks: list[tuple[int, int]]):
+def decode_blocks(image, blocks: list[tuple[int, int]]):
     """Create a new image with the original blocks arrangement
 
     Args:
@@ -75,3 +75,16 @@ def decode_block(image, blocks: list[tuple[int, int]]):
         (0, 0, original_size[0], original_size[1]))
 
     return cropped_image
+
+
+def decode(image):
+    """Decode the image
+
+    Args:
+        image (Image): The image to be decoded
+
+    Returns:
+        Image: The decoded image
+    """
+    blocks = extract_data_image(image)
+    return decode_blocks(image, blocks)

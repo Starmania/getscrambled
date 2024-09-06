@@ -25,6 +25,9 @@ from .constants import constants as C
 from .shared import create_block_grid, arrange_blocks
 
 if typing.TYPE_CHECKING:
+    from typing import List, TypeVar
+
+    T = TypeVar('T')
     Image = PIL.Image.Image
 
 
@@ -58,7 +61,7 @@ def add_data_image(image: "Image", blocks):
     return stegano.lsb.hide(image, json_data)
 
 
-def encode_block(image: "Image", block_size: int = None):
+def encode_blocks(image: "Image", block_size: int = None):
     """Create a new image with an random arrangement of the blocks of the original image
 
     Args:
@@ -81,9 +84,7 @@ def encode_block(image: "Image", block_size: int = None):
     blocks = create_block_grid(*image.size, block_size)
 
     # Shuffle blocks
-    state = np.random.Generator(np.random.PCG64([0, 1, 2, 3]))
-
-    state.shuffle(blocks)
+    np.random.shuffle(blocks)
 
     encoded_image = arrange_blocks(image, block_size, blocks)
 
@@ -91,3 +92,16 @@ def encode_block(image: "Image", block_size: int = None):
     blocks.insert(0, image.size)  # So we can recover the original image size
 
     return blocks, encoded_image
+
+def encode(image: "Image", block_size: int = None):
+    """Encode the image with the blocks information
+
+    Args:
+        image (Image): The image to be encoded
+        block_size (int, optional). Defaults to BS.
+
+    Returns:
+        Image: The modified image
+    """
+    blocks, encoded_img = encode_blocks(image, block_size)
+    return add_data_image(encoded_img, blocks)
