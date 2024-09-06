@@ -35,7 +35,14 @@ def extract_data_image(image):
     if isinstance(image, str):
         image = PIL.Image.open(image)
 
+    # This is required as stegano closes the image... For now
+    image.close_ = image.close
+    image.close = lambda: None
+
     data = stegano.lsb.reveal(image)
+    image.close = image.close_
+    del image.close_
+
     blocks_bad = json.loads(data)
     blocks = [(blocks_bad[i], blocks_bad[i + 1])
               for i in range(0, len(blocks_bad), 2)]
