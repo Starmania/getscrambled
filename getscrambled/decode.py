@@ -1,3 +1,18 @@
+"""Module to decode the image
+
+Example:
+```python
+from getscrambled import decode
+import PIL.Image
+
+img = PIL.Image.open("encoded_image.png")
+blocks = decode.extract_data_image(img)
+
+# This is required as stegano closes the image...
+img = PIL.Image.open("encoded_image.png")
+decoded_img = decode.decode_block(img, blocks)
+```
+"""
 import json
 
 import PIL

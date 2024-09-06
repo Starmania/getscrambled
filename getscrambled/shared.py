@@ -1,3 +1,5 @@
+"""Shared functions for the getscrambled package.
+"""
 import itertools
 import math
 import typing

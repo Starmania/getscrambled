@@ -1,3 +1,17 @@
+"""Module to encode the image
+
+Example:
+```python
+from getscrambled import encode
+import PIL.Image
+
+img = PIL.Image.open("image.png")
+blocks, encoded_img = encode.encode_block(img)
+full_img = encode.add_data_image(encoded_img, blocks)
+
+full_img.save("encoded_image.png")
+```
+"""
 import json
 import typing
 
