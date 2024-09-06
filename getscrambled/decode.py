@@ -61,6 +61,7 @@ def decode_block(image, blocks: list[tuple[int, int]], block_size: int = BS):
         raise ImageFormatError(image)
 
     original_size = blocks.pop(0)
+    block_size = blocks.pop(0)[0]
 
     encoded_image = arrange_blocks(image, block_size, blocks, decoding=True)
 

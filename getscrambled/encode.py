@@ -85,6 +85,7 @@ def encode_block(image: "Image", block_size: int = BS):
 
     encoded_image = arrange_blocks(image, block_size, blocks)
 
+    blocks.insert(0, (block_size, )*2)  # So we can recover the block size
     blocks.insert(0, image.size)  # So we can recover the original image size
 
     return blocks, encoded_image
