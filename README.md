@@ -25,7 +25,7 @@ decoded_image = decode(scrambled_image)
 decoded_image.save("tests/artifacts/baboon_decoded.png")
 ```
 ### Original and scrambled image
-![baboon](tests/data/baboon.png| width=100) ![baboon_scrambled](tests/artifacts/baboon_scrambled.png| width=100)
+<img src="https://github.com/Starmania/getscrambled/blob/main/tests/data/baboon.png?raw=true" alt="baboon" style="width: 45%;"> <img src="https://github.com/Starmania/getscrambled/blob/main/tests/data/baboon_scrambled.png?raw=true" alt="baboon_scrambled" style="width: 45%;">
 
 ## Installation
 
